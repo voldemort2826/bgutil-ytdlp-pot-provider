@@ -1,15 +1,17 @@
-import { BG, BgConfig, DescrambledChallenge } from "bgutils-js";
-import { JSDOM } from "jsdom";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import axios from "axios";
+import { BG, BgConfig, DescrambledChallenge } from "bgutils-js";
 import { Agent } from "https";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { SocksProxyAgent } from "https-socks-proxy";
+import { JSDOM } from "jsdom";
 import { Innertube } from "youtubei.js";
 interface YoutubeSessionData {
     poToken: string;
     contentBinding: string;
     expiresAt: Date;
 }
+
+type CompatibleAgent = Agent | SocksProxyAgent;
 
 export interface YoutubeSessionDataCaches {
     [contentBinding: string]: YoutubeSessionData;
@@ -94,7 +96,7 @@ export class SessionManager {
         proxy: string | undefined,
         sourceAddress: string | undefined,
         disableTlsVerification: boolean = false,
-    ): Agent | undefined {
+    ): CompatibleAgent | undefined {
         if (!proxy) {
             return new Agent({
                 localAddress: sourceAddress,
@@ -189,7 +191,7 @@ export class SessionManager {
         globalThis.window = dom.window as any;
         globalThis.document = dom.window.document;
 
-        let dispatcher: Agent | undefined;
+        let dispatcher: CompatibleAgent | undefined;
         if (proxy) {
             dispatcher = this.getProxyDispatcher(
                 proxy,
